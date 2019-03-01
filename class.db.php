@@ -4,19 +4,23 @@ class DB {
   var $last_query;
   var $last_error;
   var $query_log;
+  var $config;
 
-  function DB() {
+  function __construct($config) {
+    $this->config = array(
+      'host' => isset($config['dbhost']) ? $config['dbhost'] : 'dbhost',
+      'name' => isset($config['dbname']) ? $config['dbname'] : 'dbname',
+      'user' => isset($config['dbuser']) ? $config['dbuser'] : 'dbuser',
+      'pass' => isset($config['dbpass']) ? $config['dbpass'] : 'dbpass',
+    );
     $this->connect();
   }
 
   function connect() {
-    mysql_connect(DB_HOST, DB_USER, DB_PASS) or die(mysql_error());
-    mysql_select_db(DB_NAME);
-
     static $pdo;
     if (!$pdo) {
       try {
-        $pdo = new PDO("mysql:dbname=". DB_NAME .";host=". DB_HOST, DB_USER, DB_PASS);
+        $pdo = new PDO("mysql:dbname=". $this->config['name'] .";host=". $this->config['host'], $this->config['user'], $this->config['pass']);
 
       }
       catch (Exception $e) {
