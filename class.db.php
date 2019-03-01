@@ -1,3 +1,4 @@
+<?php
 
 class DB {
   var $last_query;
@@ -26,66 +27,7 @@ class DB {
     return $pdo;
   }
 
-  function install() {
-    $this->query("CREATE TABLE IF NOT EXISTS User (
-      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-      `name` varchar(128) NOT NULL,
-      `pass` varchar(32) NOT NULL,
-      `active` int(1) NOT NULL DEFAULT '1',
-      `level` int(2) NOT NULL DEFAULT '". Auth::USER ."',
-      `created` datetime NOT NULL,
-      `updated` datetime NOT NULL,
-      PRIMARY KEY (`id`),
-      KEY `name` (`name`),
-      KEY `active` (`active`),
-      KEY `created` (`created`),
-      KEY `updated` (`updated`)
-    )");
-
-    $this->query("CREATE TABLE IF NOT EXISTS Site (
-      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-      `url` varchar(256) NOT NULL,
-      `version` varchar(8) NOT NULL,
-      `created` datetime NOT NULL,
-      `updated` datetime NOT NULL,
-      PRIMARY KEY (`id`),
-      KEY `url` (`url`),
-      KEY `version` (`version`),
-      KEY `created` (`created`),
-      KEY `updated` (`updated`)
-    )");
-
-    $this->query("CREATE TABLE IF NOT EXISTS Plugin (
-      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-      `slug` varchar(256) NOT NULL,
-      `created` datetime NOT NULL,
-      `updated` datetime NOT NULL,
-      PRIMARY KEY (`id`),
-      KEY `slug` (`slug`),
-      KEY `created` (`created`),
-      KEY `updated` (`updated`)
-    )");
-
-    $this->query("CREATE TABLE IF NOT EXISTS Site_has_Plugin (
-      `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-      `fk_plugin_id` int(11) unsigned NOT NULL,
-      `fk_site_id` int(11) unsigned NOT NULL,
-      `version` varchar(16) NOT NULL,
-      `active` int(1) NOT NULL,
-      `description` text NOT NULL,
-      `name` varchar(255) NOT NULL,
-      `created` datetime NOT NULL,
-      `updated` datetime NOT NULL,
-      PRIMARY KEY (`id`),
-      KEY `fk_plugin_id` (`fk_plugin_id`),
-      KEY `fk_site_id` (`fk_site_id`),
-      KEY `version` (`version`),
-      KEY `active` (`active`),
-      KEY `created` (`created`),
-      KEY `updated` (`updated`)
-    )");
-  }
-
+ 
   function list_all($table, $id_key = 'id') {
     $sites = $this->find($table, array(), -1, $id_key);
     return array_filter($sites, function($a) {
