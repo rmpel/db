@@ -184,6 +184,80 @@ class DB {
 		return ( $limit == 1 ? reset( $list ) : $list );
 	}
 
+	function get_col( $table, $criteria, $col=0, $limit=null, $id_key = 'id', $order = null) {
+		$records = $this->find( $table, $criteria, $limit, $id_key, $order );
+		if (is_numeric($col)) {
+			$column = array_map(function($record) use ($col) {
+				$record = array_values((array)$record);
+				return $record[$col];
+			}, $records);
+		}
+		else {
+			$column = array_map(function($record) use ($col) {
+				return $record->{$col};
+			}, $records);
+		}
+
+		return $column;
+	}
+
+	function get_var( $table, $criteria, $column, $order = null ) {
+		$record = $this->find( $table, $criteria, 1, $column, $order );
+		return $record->{$column};
+	}
+
+	function get_fields($table, $id_key='Field') {
+		$result = $this->query("SHOW COLUMNS IN `$table`");
+		$list   = array();
+
+		while ( $row = $result->fetchObject() ) {
+			if ( false === $id_key ) {
+				$list[] = $row;
+			}
+			else {
+				$list[ $row->$id_key ] = $row;
+			}
+		}
+
+		$keys = array_map(function($record) use ($id_key) {
+			if (!isset($record->$id_key)) {
+				$keys = array_keys((array)$record);
+				$id_key = reset($keys);
+			}
+
+			return $record->$id_key;
+		}, $list);
+
+		return array_combine($keys, $list);
+	}
+
+	function map_data($table, $data) {
+		$keys = $this->get_fields($table);
+		$keys = array_keys($keys);
+
+		$data = array_map(function($row) use ($keys) {
+			$o = false;
+			if (is_object($row)) {
+				$o = true;
+				$row = (array)$row;
+			}
+			$_keys = array_keys($row);
+			$_common_keys = array_intersect($_keys, $keys);
+			$new_row = array();
+			foreach ($_common_keys as $key) {
+				$new_row[ $key ] = $row[ $key ];
+			}
+
+			if($o) {
+				$new_row = (object)$new_row;
+			}
+
+			return $new_row;
+		}, $data);
+
+		return $data;
+	}
+
 	function query( $query, $args = null ) {
 		$this->last_error = 'Ok';
 		if ( ! $args ) {
