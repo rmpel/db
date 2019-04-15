@@ -78,8 +78,16 @@ class DB {
 
 		if ( count( $criteria ) > 0 ) {
 			foreach ( $criteria as $field => $value ) {
-				$_field = str_replace( '.', '`.`', trim( $field ) );
 				$op     = '=';
+
+				if ( is_array( $value ) && isset($value['__field'])) {
+					$_field = $value['__field'];
+					unset($value['__field']);
+				}
+				else {
+					$_field = '`' . str_replace( '.', '`.`', trim( $field ) ) .'`';
+				}
+
 				if ( is_array( $value ) && in_array( reset( $value ), array( '>', '<', '<=', '>=', '<>' ) ) ) {
 					$op    = array_shift( $value );
 					$value = array_shift( $value );
@@ -92,15 +100,15 @@ class DB {
 						foreach ( $value as $v ) {
 							$data[] = $v;
 						}
-						$value = implode( " OR `{$_field}` {$op} ", array_fill( 0, count( $value ), '?' ) );
+						$value = implode( " OR {$_field} {$op} ", array_fill( 0, count( $value ), '?' ) );
 					} elseif ( reset( $value ) === 'OR' ) {
 						array_shift( $value );
 						foreach ( $value as $i => $v ) {
 							if ( 'IS NULL' == $v ) {
-								$value[ $i ] = " OR `{$_field}` IS NULL ";
+								$value[ $i ] = " OR {$_field} IS NULL ";
 							} else {
 								$data[]      = $v;
-								$value[ $i ] = " OR `{$_field}` = ? ";
+								$value[ $i ] = " OR {$_field} = ? ";
 							}
 						}
 						$value = implode( '', $value );
@@ -116,7 +124,7 @@ class DB {
 					$data[] = $value;
 					$value  = "?";
 				}
-				$criteria[ $field ] = "(`{$_field}` $op $value)";
+				$criteria[ $field ] = "({$_field} $op $value)";
 			}
 			$criteria = implode( " AND ", $criteria );
 		} else {
